@@ -3,6 +3,9 @@ package main
 import (
 	"log"
 
+	"romanm/web-service-gin/db"
+	"romanm/web-service-gin/service"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -40,14 +43,26 @@ func init() {
 
 func main() {
 
+	db := db.Init()
+
+	subscriptionService := service.NewSubscriptionService()
+
 	router := gin.Default()
-	router.GET("/weather", GetWeatherForecast)
+	router.GET("/weather", func(ctx *gin.Context) {
+		GetWeatherForecast(ctx, db)
+	})
 
-	router.POST("/subscribe", SubscribeWeatherUpdates)
+	router.POST("/subscribe", func(c *gin.Context) {
+		subscriptionService.SubscribeWeatherUpdates(c, db)
+	})
 
-	router.GET("/confirm/:token", ConfirmSubscription)
+	router.GET("/confirm/:token", func(ctx *gin.Context) {
+		subscriptionService.ConfirmSubscription(ctx, db)
+	})
 
-	router.GET("/unsubscribe/:token", UnsubscribeWeatherUpdates)
+	router.GET("/unsubscribe/:token", func(ctx *gin.Context) {
+		subscriptionService.UnsubscribeWeatherUpdates(ctx, db)
+	})
 
 	router.Run(":8080")
 }
